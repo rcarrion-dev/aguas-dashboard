@@ -7,9 +7,17 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-poppins);
+  --color-aguas-azul: var(--aguas-azul);
+  --color-aguas-azul-900: var(--aguas-azul-900);
+  --color-aguas-amarillo: var(--aguas-amarillo);
+  --color-aguas-amarillo-50: var(--aguas-amarillo-50);
+  --color-aguas-verde: var(--aguas-verde);
+  --color-aguas-verde-50: var(--aguas-verde-50);
+  --color-aguas-rojo: var(--aguas-rojo);
+  --color-aguas-rojo-50: var(--aguas-rojo-50);
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-heading: var(--font-poppins);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -48,39 +56,53 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* Paleta de Aguas!
+   azul      → color principal (botones, gráfica, enlaces)
+   azul-900  → fondo de la sidebar
+   amarillo  → acento y estado "pendiente"
+   Para cambiar un color de toda la app, se cambia solo aquí. */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --aguas-azul: #2b1fe0;
+  --aguas-azul-900: #1e10b8;
+  --aguas-amarillo: #f5a800;
+  --aguas-amarillo-50: #fff6e0;
+  --aguas-verde: #1f8a5b;
+  --aguas-verde-50: #e6f4ec;
+  --aguas-rojo: #c73636;
+  --aguas-rojo-50: #fbeaea;
+
+  --background: #f5f5fa;
+  --foreground: #16142b;
+  --card: #ffffff;
+  --card-foreground: #16142b;
+  --popover: #ffffff;
+  --popover-foreground: #16142b;
+  --primary: var(--aguas-azul);
+  --primary-foreground: #ffffff;
+  --secondary: #ecebf7;
+  --secondary-foreground: #1e10b8;
+  --muted: #efeff5;
+  --muted-foreground: #66647a;
+  --accent: #ecebf7;
+  --accent-foreground: #1e10b8;
+  --destructive: var(--aguas-rojo);
+  --border: #e3e2ee;
+  --input: #dddcea;
+  --ring: var(--aguas-azul);
+  --chart-1: var(--aguas-azul);
+  --chart-2: var(--aguas-amarillo);
+  --chart-3: #7a72ee;
+  --chart-4: #b3adf5;
+  --chart-5: #16142b;
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: var(--aguas-azul-900);
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: var(--aguas-amarillo);
+  --sidebar-primary-foreground: #2a1a00;
+  --sidebar-accent: rgb(255 255 255 / 0.14);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgb(255 255 255 / 0.16);
+  --sidebar-ring: var(--aguas-amarillo);
 }
 
 .dark {

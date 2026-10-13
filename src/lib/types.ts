@@ -5,7 +5,7 @@
 // Mismos estados que usa la app de iOS (EstadoReporte en Reporte.swift)
 export type EstadoReporte = "pendiente" | "verificado" | "rechazado";
 
-export type Rol = "admin" | "moderador" | "usuario";
+export type Rol = "admin" | "ssc" | "usuario";
 
 export type TipoContacto = "telefono" | "correo" | "url";
 
@@ -30,7 +30,7 @@ export interface Reporte {
   evidencias: Evidencia[];
   // Solo si ya fue revisado
   revision?: {
-    moderador: string;
+    administrador: string;
     fecha: string; // ISO
     motivo: string | null;
   };

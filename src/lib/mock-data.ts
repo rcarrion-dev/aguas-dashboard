@@ -27,6 +27,7 @@ export const usuarios: Usuario[] = [
   { id: 8, nombre: "Sofía Méndez", correo: "sofi.mendez@gmail.com", rol: "usuario", activo: true, fechaRegistro: horasAtras(24 * 18), totalReportes: 4 },
   { id: 9, nombre: "Carlos Ruiz", correo: "cruiz@hotmail.com", rol: "usuario", activo: false, fechaRegistro: horasAtras(24 * 15), totalReportes: 9 },
   { id: 10, nombre: "Daniela Vega", correo: "dani.vega@gmail.com", rol: "usuario", activo: true, fechaRegistro: horasAtras(24 * 9), totalReportes: 3 },
+  { id: 11, nombre: "Laura Ramírez", correo: "laura.ramirez@ssc.cdmx.gob.mx", rol: "ssc", activo: true, fechaRegistro: horasAtras(24 * 12), totalReportes: 0 },
 ];
 
 // [contacto, tipo, descripción]

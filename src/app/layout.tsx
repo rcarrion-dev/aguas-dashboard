@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Aguas! · Panel de administración",
-  description: "Moderación y estadísticas de la plataforma Aguas!",
+  description: "Revisión de reportes y estadísticas de la plataforma Aguas!",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

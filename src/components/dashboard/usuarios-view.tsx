@@ -20,7 +20,7 @@ import type { Rol, Usuario } from "@/lib/types";
 
 const roles: { valor: Rol; texto: string }[] = [
   { valor: "usuario", texto: "Usuario" },
-  { valor: "moderador", texto: "Moderador" },
+  { valor: "ssc", texto: "SSC" },
   { valor: "admin", texto: "Admin" },
 ];
 

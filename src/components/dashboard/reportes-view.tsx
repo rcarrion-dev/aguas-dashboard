@@ -98,7 +98,7 @@ export function ReportesView({ iniciales }: { iniciales: Reporte[] }) {
           ? {
               ...r,
               estado,
-              revision: { moderador: usuarioActual.nombre, fecha: ahora().toISOString(), motivo },
+              revision: { administrador: usuarioActual.nombre, fecha: ahora().toISOString(), motivo },
             }
           : r
       )
@@ -395,7 +395,7 @@ function DetalleReporte({
                     <span className="font-medium">
                       {reporte.estado === "verificado" ? "Aprobado" : "Rechazado"}
                     </span>{" "}
-                    por {reporte.revision.moderador} · {fechaHora(reporte.revision.fecha)}
+                    por {reporte.revision.administrador} · {fechaHora(reporte.revision.fecha)}
                   </p>
                   {reporte.revision.motivo && (
                     <p className="mt-1 text-muted-foreground">Motivo: {reporte.revision.motivo}</p>

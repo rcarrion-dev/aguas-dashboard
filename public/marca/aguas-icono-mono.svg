@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="22 14 156 164" role="img" aria-label="Aguas">
+  <title>Aguas</title>
+  <defs>
+    <mask id="aguas-icm-cortes" maskUnits="userSpaceOnUse" x="0" y="0" width="200" height="200"><rect width="200" height="200" fill="#fff"/><path d="M100 28 Q70 52 73 100 M100 28 Q130 52 127 100" fill="none" stroke="#000" stroke-width="2.4" stroke-linecap="round" transform="translate(100 101) scale(0.9) translate(-100 -101)"/></mask>
+    <mask id="aguas-icm-jota" maskUnits="userSpaceOnUse" x="0" y="0" width="200" height="200"><rect width="200" height="200" fill="#fff"/><path d="M20 101 C19 52 55 28 100 28 C145 28 181 52 180 101 Q153.5 83 127 100 Q100 84 73 100 Q46.5 83 20 101 Z" fill="#000" stroke="#000" stroke-width="10" stroke-linejoin="round" transform="translate(100 101) scale(0.9) translate(-100 -101)"/></mask>
+  </defs>
+  <path d="M100 84 V140 A12.5 12.5 0 0 1 75 140" fill="none" stroke="currentColor" stroke-width="8.5" stroke-linecap="round" mask="url(#aguas-icm-jota)"/>
+  <g mask="url(#aguas-icm-cortes)"><path d="M20 101 C19 52 55 28 100 28 C145 28 181 52 180 101 Q153.5 83 127 100 Q100 84 73 100 Q46.5 83 20 101 Z" fill="currentColor" stroke="currentColor" stroke-width="5" stroke-linejoin="round" transform="translate(100 101) scale(0.9) translate(-100 -101)"/></g>
+  <path d="M91.5 27 A8.5 8.5 0 0 1 108.5 27 Z" fill="currentColor" transform="translate(100 101) scale(0.9) translate(-100 -101)"/>
+</svg>

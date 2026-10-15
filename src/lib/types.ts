@@ -5,7 +5,8 @@
 // Mismos estados que usa la app de iOS (EstadoReporte en Reporte.swift)
 export type EstadoReporte = "pendiente" | "verificado" | "rechazado";
 
-export type Rol = "admin" | "moderador" | "usuario";
+// Nombres tal cual la tabla `rol` de la BD
+export type Rol = "usuario" | "SSC" | "administrador";
 
 export type TipoContacto = "telefono" | "correo" | "url";
 

@@ -48,7 +48,7 @@ export function GraficaReportes({ datos }: { datos: PuntoSerie[] }) {
               );
             }}
           />
-          <Bar dataKey="total" fill="var(--aguas-azul)" radius={[4, 4, 0, 0]} maxBarSize={18} />
+          <Bar dataKey="total" fill="var(--aguas-vivo)" radius={[4, 4, 0, 0]} maxBarSize={18} />
         </BarChart>
       </ResponsiveContainer>
     </div>

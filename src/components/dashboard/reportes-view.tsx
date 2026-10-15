@@ -41,7 +41,6 @@ import {
 } from "./reporte-ui";
 import { fechaHora, ahora } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { usuarioActual } from "@/lib/mock-data";
 import type { EstadoReporte, Reporte } from "@/lib/types";
 
 type Pestana = EstadoReporte | "todos";
@@ -55,7 +54,16 @@ const pestanas: { valor: Pestana; texto: string }[] = [
 
 const POR_PAGINA = 10;
 
-export function ReportesView({ iniciales }: { iniciales: Reporte[] }) {
+export function ReportesView({
+  iniciales,
+  puedeModerar,
+  nombreModerador,
+}: {
+  iniciales: Reporte[];
+  /** false para SSC: solo consulta, sin aprobar/rechazar */
+  puedeModerar: boolean;
+  nombreModerador: string;
+}) {
   const params = useSearchParams();
   const qInicial = params.get("q") ?? "";
   const idInicial = Number(params.get("id")) || null;
@@ -63,7 +71,9 @@ export function ReportesView({ iniciales }: { iniciales: Reporte[] }) {
   // V1: los cambios viven en memoria. En V3 aprobar/rechazar llama al backend.
   const [reportes, setReportes] = useState(iniciales);
   // Si vienes de la búsqueda global, buscamos en todos los estados
-  const [pestana, setPestana] = useState<Pestana>(qInicial ? "todos" : "pendiente");
+  const [pestana, setPestana] = useState<Pestana>(
+    !puedeModerar ? "verificado" : qInicial ? "todos" : "pendiente"
+  );
   const [busqueda, setBusqueda] = useState(qInicial);
   const [orden, setOrden] = useState<Orden>("nuevos");
   const [pagina, setPagina] = useState(1);
@@ -98,7 +108,7 @@ export function ReportesView({ iniciales }: { iniciales: Reporte[] }) {
           ? {
               ...r,
               estado,
-              revision: { moderador: usuarioActual.nombre, fecha: ahora().toISOString(), motivo },
+              revision: { moderador: nombreModerador, fecha: ahora().toISOString(), motivo },
             }
           : r
       )
@@ -114,6 +124,12 @@ export function ReportesView({ iniciales }: { iniciales: Reporte[] }) {
     <div className="mx-auto flex max-w-6xl flex-col gap-4">
       {/* Pestañas por estado + búsqueda + orden */}
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        {/* SSC solo ve verificados, así que no necesita pestañas */}
+        {!puedeModerar ? (
+          <p className="text-sm text-muted-foreground">
+            {conteos.verificado} reportes verificados para dar seguimiento
+          </p>
+        ) : (
         <div role="tablist" aria-label="Estado del reporte" className="flex gap-1 overflow-x-auto">
           {pestanas.map((p) => (
             <button
@@ -138,7 +154,7 @@ export function ReportesView({ iniciales }: { iniciales: Reporte[] }) {
                   pestana === p.valor
                     ? "bg-white/20"
                     : p.valor === "pendiente" && conteos.pendiente > 0
-                      ? "bg-aguas-amarillo text-[#2a1a00]"
+                      ? "bg-aguas-ambar text-[#3b2600]"
                       : "bg-muted"
                 )}
               >
@@ -147,6 +163,7 @@ export function ReportesView({ iniciales }: { iniciales: Reporte[] }) {
             </button>
           ))}
         </div>
+        )}
 
         <div className="flex items-center gap-2">
           <label className="relative block flex-1 lg:w-64 lg:flex-none">
@@ -264,6 +281,7 @@ export function ReportesView({ iniciales }: { iniciales: Reporte[] }) {
         onCerrar={() => setSeleccionadoId(null)}
         onSeleccionar={setSeleccionadoId}
         onModerar={moderar}
+        puedeModerar={puedeModerar}
       />
     </div>
   );
@@ -276,12 +294,14 @@ function DetalleReporte({
   onCerrar,
   onSeleccionar,
   onModerar,
+  puedeModerar,
 }: {
   reporte: Reporte | null;
   todos: Reporte[];
   onCerrar: () => void;
   onSeleccionar: (id: number) => void;
   onModerar: (id: number, estado: "verificado" | "rechazado", motivo: string | null) => void;
+  puedeModerar: boolean;
 }) {
   const [rechazando, setRechazando] = useState(false);
   const [motivo, setMotivo] = useState("");
@@ -324,8 +344,8 @@ function DetalleReporte({
 
             <div className="flex flex-1 flex-col gap-6 overflow-y-auto p-4">
               {otros.length > 0 && (
-                <div className="rounded-lg bg-aguas-amarillo-50 p-3 ring-1 ring-aguas-amarillo/40 ring-inset">
-                  <p className="text-sm font-semibold text-[#7a5200]">
+                <div className="rounded-lg bg-aguas-ambar-50 p-3 ring-1 ring-aguas-ambar/40 ring-inset">
+                  <p className="text-sm font-semibold text-[#92400e]">
                     {otros.length === 1
                       ? "Hay 1 reporte más de este contacto"
                       : `Hay ${otros.length} reportes más de este contacto`}
@@ -338,7 +358,7 @@ function DetalleReporte({
                           onClick={() => onSeleccionar(o.id)}
                           className="flex w-full items-center justify-between gap-2 rounded-md px-2 py-1 text-left text-sm hover:bg-white/70"
                         >
-                          <span className="text-[#5c3d00]">
+                          <span className="text-[#78350f]">
                             #{o.id} · {o.nombreUsuario}
                           </span>
                           <EstadoBadge estado={o.estado} />
@@ -404,7 +424,7 @@ function DetalleReporte({
               )}
             </div>
 
-            {reporte.estado === "pendiente" && (
+            {puedeModerar && reporte.estado === "pendiente" && (
               <SheetFooter className="border-t bg-card">
                 {rechazando ? (
                   <form

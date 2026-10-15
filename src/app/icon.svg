@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="22 14 156 164" role="img" aria-label="Aguas">
+  <title>Aguas</title>
+  <defs><mask id="aguas-ic-silueta" maskUnits="userSpaceOnUse" x="0" y="0" width="200" height="200"><path d="M20 101 C19 52 55 28 100 28 C145 28 181 52 180 101 Q153.5 83 127 100 Q100 84 73 100 Q46.5 83 20 101 Z" fill="#fff" stroke="#fff" stroke-width="5" stroke-linejoin="round" transform="translate(100 101) scale(0.9) translate(-100 -101)"/></mask></defs>
+  <path d="M100 84 V140 A12.5 12.5 0 0 1 75 140" fill="none" stroke="#033777" stroke-width="8.5" stroke-linecap="round"/>
+  <g mask="url(#aguas-ic-silueta)"><g transform="translate(100 101) scale(0.9) translate(-100 -101)">
+    <rect x="0" y="0" width="200" height="150" fill="#033777"/>
+    <path d="M100 0 L100 28 Q70 52 73 100 L73 150 L200 150 L200 0 Z" fill="#1D81FF"/>
+    <path d="M100 0 L100 28 Q130 52 127 100 L127 150 L200 150 L200 0 Z" fill="#72B5FD"/>
+  </g></g>
+  <path d="M91.5 27 A8.5 8.5 0 0 1 108.5 27 Z" fill="#1D81FF" transform="translate(100 101) scale(0.9) translate(-100 -101)"/>
+</svg>

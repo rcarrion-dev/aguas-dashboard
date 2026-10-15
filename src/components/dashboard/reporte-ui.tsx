@@ -8,7 +8,7 @@ import type { EstadoReporte, TipoContacto } from "@/lib/types";
 const estilosEstado: Record<EstadoReporte, { texto: string; clase: string }> = {
   pendiente: {
     texto: "Pendiente",
-    clase: "bg-aguas-amarillo-50 text-[#7a5200] ring-aguas-amarillo/40",
+    clase: "bg-aguas-ambar-50 text-[#92400e] ring-aguas-ambar/40",
   },
   verificado: {
     texto: "Verificado",
@@ -62,7 +62,7 @@ export function Antiguedad({
       className={cn(
         "text-sm whitespace-nowrap",
         nivel === "normal" && "text-muted-foreground",
-        nivel === "atencion" && "font-medium text-[#9a6700]",
+        nivel === "atencion" && "font-medium text-[#a16207]",
         nivel === "urgente" && "font-medium text-aguas-rojo"
       )}
       title={

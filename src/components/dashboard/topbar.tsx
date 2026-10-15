@@ -4,6 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { SearchIcon } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Input } from "@/components/ui/input";
+import { BotonTema } from "@/components/tema";
 import { NOMBRE_ROL, type RolPanel } from "@/lib/permisos";
 
 const titulos: Record<string, string> = {
@@ -36,7 +37,7 @@ export function Topbar({ usuario }: { usuario: { nombre: string; rol: RolPanel }
       <SidebarTrigger className="md:hidden" />
       <h1 className="text-base font-semibold">{titulo}</h1>
 
-      {/* Búsqueda global: manda a Reportes filtrando por número o correo */}
+      {/* Búsqueda global: manda a Reportes filtrando por teléfono, enlace o empresa */}
       <form
         className="ml-auto hidden w-full max-w-xs sm:block"
         onSubmit={(e) => {
@@ -50,18 +51,19 @@ export function Topbar({ usuario }: { usuario: { nombre: string; rol: RolPanel }
           <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             name="q"
-            placeholder="+52 55 1234 5678 o correo"
+            placeholder="Teléfono, enlace o empresa"
             className="h-9 bg-card pl-8"
           />
         </label>
       </form>
 
       <div className="ml-auto flex items-center gap-2.5 sm:ml-2">
+        <BotonTema />
         <div className="hidden text-right leading-tight lg:block">
           <p className="text-sm font-medium">{usuario.nombre}</p>
           <p className="text-xs text-muted-foreground">{NOMBRE_ROL[usuario.rol]}</p>
         </div>
-        <div className="flex size-8 items-center justify-center rounded-full bg-aguas-marino text-xs font-semibold text-white">
+        <div className="flex size-8 items-center justify-center rounded-full bg-aguas-marino text-xs font-semibold text-white dark:ring-1 dark:ring-white/20">
           {iniciales}
         </div>
       </div>

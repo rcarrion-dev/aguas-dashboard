@@ -4,6 +4,7 @@
 //  2. Si el access token venció pero hay refresh token → pide uno nuevo al backend.
 //  3. Si el rol no puede ver esa página → a su página de inicio.
 //  4. Si ya hay sesión y abre /login → a su página de inicio.
+//  5. /login?expirada=1 (el backend rechazó el token) → borra la sesión y deja entrar al login.
 
 import { NextResponse, type NextRequest } from "next/server";
 import { COOKIE, leerToken, opcionesCookie, segundosRestantes, urlApi } from "@/lib/token";
@@ -35,6 +36,10 @@ function borrarSesion(res: NextResponse) {
 export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
   const esLogin = pathname === "/login";
+
+  if (esLogin && request.nextUrl.searchParams.has("expirada")) {
+    return borrarSesion(NextResponse.next());
+  }
 
   let payload = leerToken(request.cookies.get(COOKIE.acceso)?.value);
   const refreshToken = request.cookies.get(COOKIE.refresh)?.value;

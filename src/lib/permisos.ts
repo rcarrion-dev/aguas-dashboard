@@ -14,9 +14,9 @@ export function esRolPanel(rol: unknown): rol is RolPanel {
 
 const RUTAS: Record<RolPanel, string[]> = {
   // Ve todo: resumen, moderación, cuentas y bitácora
-  administrador: ["/", "/reportes", "/usuarios", "/bitacora"],
-  // Solo da seguimiento a reportes ya verificados
-  SSC: ["/reportes"],
+  administrador: ["/", "/reportes", "/usuarios", "/bitacora", "/evidencia"],
+  // Solo da seguimiento a reportes ya verificados (y ve su evidencia)
+  SSC: ["/reportes", "/evidencia"],
 };
 
 export function rutaPermitida(rol: RolPanel, ruta: string): boolean {

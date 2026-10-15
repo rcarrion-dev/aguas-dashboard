@@ -1,9 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  cacheComponents: true,
-  partialPrefetching: true,
+  // Sin cacheComponents: todo el panel depende de la sesión (cookies) y de la
+  // hora (vencimiento del token), así que cada página se arma en cada petición.
   turbopack: {
     rules: {
       "*.css": {

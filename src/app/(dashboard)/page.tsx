@@ -1,26 +1,35 @@
-import { CheckCircle2Icon, ClockIcon, InboxIcon, XCircleIcon } from "lucide-react";
+import { CheckCircle2Icon, InboxIcon, SendIcon, XCircleIcon } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { GraficaReportes } from "@/components/dashboard/grafica-reportes";
 import { PendientesLista } from "@/components/dashboard/pendientes-lista";
-import { kpis, reportes, serieReportesPorDia } from "@/lib/mock-data";
+import { haceMenosDe, obtenerBitacora, obtenerReportes, seriePorDia } from "@/lib/reportes";
 import { cn } from "@/lib/utils";
 import { requerirSesion } from "@/lib/sesion";
 
 // Página: Resumen (home del panel, solo administrador)
 export default async function ResumenPage() {
-  await requerirSesion("administrador");
+  const sesion = await requerirSesion("administrador");
+  const [reportes, bitacora] = await Promise.all([
+    obtenerReportes(sesion.rol),
+    obtenerBitacora(),
+  ]);
+
   const pendientes = reportes.filter((r) => r.estado === "pendiente");
-  const totalMes = serieReportesPorDia.reduce((s, p) => s + p.total, 0);
+  const serie = seriePorDia(reportes, 30);
+  const totalMes = serie.reduce((s, p) => s + p.total, 0);
+
+  // Aprobados/rechazados salen de la bitácora: cuenta cuándo se revisaron,
+  // no cuándo se enviaron.
+  const revisadas7d = bitacora.filter((b) => haceMenosDe(b.fechaHora, 7));
+  const aprobados7d = revisadas7d.filter((b) => b.accion === "reporte_verificado").length;
+  const rechazados7d = revisadas7d.filter((b) => b.accion === "reporte_rechazado").length;
+  const recibidos7d = reportes.filter((r) => haceMenosDe(r.fechaCreacion, 7)).length;
 
   const tarjetas = [
-    { titulo: "Pendientes", valor: kpis.pendientes, icono: InboxIcon, destacada: true },
-    { titulo: "Aprobados · 7 días", valor: kpis.aprobados7d, icono: CheckCircle2Icon },
-    { titulo: "Rechazados · 7 días", valor: kpis.rechazados7d, icono: XCircleIcon },
-    {
-      titulo: "Tiempo prom. de revisión",
-      valor: `${kpis.horasPromedioRevision.toFixed(1)} h`,
-      icono: ClockIcon,
-    },
+    { titulo: "Pendientes", valor: pendientes.length, icono: InboxIcon, destacada: true },
+    { titulo: "Recibidos · 7 días", valor: recibidos7d, icono: SendIcon },
+    { titulo: "Aprobados · 7 días", valor: aprobados7d, icono: CheckCircle2Icon },
+    { titulo: "Rechazados · 7 días", valor: rechazados7d, icono: XCircleIcon },
   ];
 
   return (
@@ -47,10 +56,12 @@ export default async function ResumenPage() {
         <Card className="lg:col-span-3">
           <CardHeader>
             <CardTitle>Reportes recibidos por día</CardTitle>
-            <CardDescription>Últimos 30 días · {totalMes} en total</CardDescription>
+            <CardDescription>
+              Últimos 30 días · {totalMes} {totalMes === 1 ? "reporte" : "reportes"}
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <GraficaReportes datos={serieReportesPorDia} />
+            <GraficaReportes datos={serie} />
           </CardContent>
         </Card>
         <Card className="px-4 lg:col-span-2">

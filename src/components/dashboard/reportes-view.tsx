@@ -1,20 +1,23 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useOptimistic, useState, useTransition } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import {
   CheckIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  ExternalLinkIcon,
   FileTextIcon,
-  ImageIcon,
+  Loader2Icon,
   SearchIcon,
+  TriangleAlertIcon,
   XIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Sheet,
   SheetContent,
@@ -36,14 +39,18 @@ import {
   ContactoIcono,
   EstadoBadge,
   OrdenToggle,
+  mismoContacto,
   ordenarPorFecha,
+  textoBuscable,
   type Orden,
 } from "./reporte-ui";
-import { fechaHora, ahora } from "@/lib/format";
+import { cargarRevision, moderarReporte } from "@/app/actions/reportes";
+import { fechaHora } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import type { EstadoReporte, Reporte } from "@/lib/types";
+import type { EstadoReporte, Reporte, Revision } from "@/lib/types";
 
 type Pestana = EstadoReporte | "todos";
+type Resultado = "verificado" | "rechazado";
 
 const pestanas: { valor: Pestana; texto: string }[] = [
   { valor: "pendiente", texto: "Pendientes" },
@@ -57,19 +64,26 @@ const POR_PAGINA = 10;
 export function ReportesView({
   iniciales,
   puedeModerar,
-  nombreModerador,
 }: {
   iniciales: Reporte[];
   /** false para SSC: solo consulta, sin aprobar/rechazar */
   puedeModerar: boolean;
-  nombreModerador: string;
 }) {
+  const router = useRouter();
   const params = useSearchParams();
   const qInicial = params.get("q") ?? "";
   const idInicial = Number(params.get("id")) || null;
 
-  // V1: los cambios viven en memoria. En V3 aprobar/rechazar llama al backend.
-  const [reportes, setReportes] = useState(iniciales);
+  // La lista viene del servidor. Al aprobar/rechazar la cambiamos al instante
+  // (optimista) y, cuando el backend responde, el servidor manda la lista nueva.
+  // Si el backend falla, React regresa solo al estado anterior.
+  const [reportes, aplicarModeracion] = useOptimistic(
+    iniciales,
+    (actuales, cambio: { id: number; estado: Resultado }) =>
+      actuales.map((r) => (r.id === cambio.id ? { ...r, estado: cambio.estado } : r))
+  );
+  const [moderando, iniciarModeracion] = useTransition();
+
   // Si vienes de la búsqueda global, buscamos en todos los estados
   const [pestana, setPestana] = useState<Pestana>(
     !puedeModerar ? "verificado" : qInicial ? "todos" : "pendiente"
@@ -86,11 +100,9 @@ export function ReportesView({
   }, [reportes]);
 
   const filtrados = useMemo(() => {
-    const q = busqueda.trim().toLowerCase().replace(/\s+/g, "");
+    const q = busqueda.trim().toLowerCase();
     const base = reportes.filter(
-      (r) =>
-        (pestana === "todos" || r.estado === pestana) &&
-        (!q || r.contacto.toLowerCase().replace(/\s+/g, "").includes(q))
+      (r) => (pestana === "todos" || r.estado === pestana) && (!q || textoBuscable(r).includes(q))
     );
     return ordenarPorFecha(base, orden);
   }, [reportes, pestana, busqueda, orden]);
@@ -101,23 +113,22 @@ export function ReportesView({
 
   const seleccionado = reportes.find((r) => r.id === seleccionadoId) ?? null;
 
-  function moderar(id: number, estado: "verificado" | "rechazado", motivo: string | null) {
-    setReportes((prev) =>
-      prev.map((r) =>
-        r.id === id
-          ? {
-              ...r,
-              estado,
-              revision: { moderador: nombreModerador, fecha: ahora().toISOString(), motivo },
-            }
-          : r
-      )
-    );
-    toast.success(estado === "verificado" ? `Reporte #${id} aprobado` : `Reporte #${id} rechazado`);
-
-    // Para moderar rápido: pasamos solo al siguiente pendiente de la lista
+  function moderar(id: number, estado: Resultado, motivo: string | null) {
+    // Para moderar rápido: al terminar pasamos al siguiente pendiente de la lista
     const siguiente = filtrados.find((r) => r.estado === "pendiente" && r.id !== id);
-    setSeleccionadoId(pestana === "pendiente" && siguiente ? siguiente.id : null);
+
+    iniciarModeracion(async () => {
+      aplicarModeracion({ id, estado });
+      const res = await moderarReporte(id, estado, motivo);
+      if (!res.ok) {
+        toast.error(res.error);
+        // Por si otro admin ya lo había revisado: traemos la lista actualizada
+        router.refresh();
+        return;
+      }
+      toast.success(estado === "verificado" ? `Reporte #${id} aprobado` : `Reporte #${id} rechazado`);
+      setSeleccionadoId(pestana === "pendiente" && siguiente ? siguiente.id : null);
+    });
   }
 
   return (
@@ -127,47 +138,49 @@ export function ReportesView({
         {/* SSC solo ve verificados, así que no necesita pestañas */}
         {!puedeModerar ? (
           <p className="text-sm text-muted-foreground">
-            {conteos.verificado} reportes verificados para dar seguimiento
+            {conteos.verificado === 1
+              ? "1 reporte verificado para dar seguimiento"
+              : `${conteos.verificado} reportes verificados para dar seguimiento`}
           </p>
         ) : (
-        <div role="tablist" aria-label="Estado del reporte" className="flex gap-1 overflow-x-auto">
-          {pestanas.map((p) => (
-            <button
-              key={p.valor}
-              role="tab"
-              aria-selected={pestana === p.valor}
-              onClick={() => {
-                setPestana(p.valor);
-                setPagina(1);
-              }}
-              className={cn(
-                "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-colors",
-                pestana === p.valor
-                  ? "bg-aguas-azul text-white"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
-              )}
-            >
-              {p.texto}
-              <span
+          <div role="tablist" aria-label="Estado del reporte" className="flex gap-1 overflow-x-auto">
+            {pestanas.map((p) => (
+              <button
+                key={p.valor}
+                role="tab"
+                aria-selected={pestana === p.valor}
+                onClick={() => {
+                  setPestana(p.valor);
+                  setPagina(1);
+                }}
                 className={cn(
-                  "rounded-full px-1.5 text-xs tabular-nums",
+                  "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-colors",
                   pestana === p.valor
-                    ? "bg-white/20"
-                    : p.valor === "pendiente" && conteos.pendiente > 0
-                      ? "bg-aguas-ambar text-[#3b2600]"
-                      : "bg-muted"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 )}
               >
-                {conteos[p.valor]}
-              </span>
-            </button>
-          ))}
-        </div>
+                {p.texto}
+                <span
+                  className={cn(
+                    "rounded-full px-1.5 text-xs tabular-nums",
+                    pestana === p.valor
+                      ? "bg-primary-foreground/20"
+                      : p.valor === "pendiente" && conteos.pendiente > 0
+                        ? "bg-aguas-ambar text-[#3b2600]"
+                        : "bg-muted"
+                  )}
+                >
+                  {conteos[p.valor]}
+                </span>
+              </button>
+            ))}
+          </div>
         )}
 
         <div className="flex items-center gap-2">
           <label className="relative block flex-1 lg:w-64 lg:flex-none">
-            <span className="sr-only">Buscar por número, correo o URL</span>
+            <span className="sr-only">Buscar por teléfono, enlace o empresa</span>
             <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={busqueda}
@@ -175,7 +188,7 @@ export function ReportesView({
                 setBusqueda(e.target.value);
                 setPagina(1);
               }}
-              placeholder="Número, correo o URL"
+              placeholder="Teléfono, enlace o empresa"
               className="h-9 bg-card pl-8"
             />
           </label>
@@ -200,9 +213,11 @@ export function ReportesView({
                 <TableCell colSpan={5} className="py-12 text-center text-muted-foreground">
                   {busqueda
                     ? "Ningún reporte coincide con tu búsqueda."
-                    : pestana === "pendiente"
-                      ? "No hay reportes pendientes. ¡Al día!"
-                      : "No hay reportes en esta sección."}
+                    : !puedeModerar
+                      ? "Todavía no hay reportes verificados."
+                      : pestana === "pendiente"
+                        ? "No hay reportes pendientes. ¡Al día!"
+                        : "No hay reportes en esta sección."}
                 </TableCell>
               </TableRow>
             )}
@@ -218,11 +233,14 @@ export function ReportesView({
                     <div className="min-w-0">
                       <button
                         type="button"
-                        className="max-w-56 truncate text-left font-medium hover:underline focus-visible:underline focus-visible:outline-none"
+                        className="block max-w-56 truncate text-left font-medium hover:underline focus-visible:underline focus-visible:outline-none"
                       >
                         {r.contacto}
                       </button>
-                      <p className="text-xs text-muted-foreground">#{r.id}</p>
+                      <p className="max-w-56 truncate text-xs text-muted-foreground">
+                        #{r.id}
+                        {r.empresa && ` · ${r.empresa}`}
+                      </p>
                     </div>
                   </div>
                 </TableCell>
@@ -281,6 +299,7 @@ export function ReportesView({
         onCerrar={() => setSeleccionadoId(null)}
         onSeleccionar={setSeleccionadoId}
         onModerar={moderar}
+        moderando={moderando}
         puedeModerar={puedeModerar}
       />
     </div>
@@ -294,13 +313,15 @@ function DetalleReporte({
   onCerrar,
   onSeleccionar,
   onModerar,
+  moderando,
   puedeModerar,
 }: {
   reporte: Reporte | null;
   todos: Reporte[];
   onCerrar: () => void;
   onSeleccionar: (id: number) => void;
-  onModerar: (id: number, estado: "verificado" | "rechazado", motivo: string | null) => void;
+  onModerar: (id: number, estado: Resultado, motivo: string | null) => void;
+  moderando: boolean;
   puedeModerar: boolean;
 }) {
   const [rechazando, setRechazando] = useState(false);
@@ -316,9 +337,25 @@ function DetalleReporte({
     setErrorMotivo(false);
   }
 
+  // Quién lo revisó (solo admin; SSC no tiene acceso a la bitácora)
+  const idSel = reporte?.id;
+  const estadoSel = reporte?.estado;
+  const [revision, setRevision] = useState<{ id: number; datos: Revision | null } | null>(null);
+  useEffect(() => {
+    if (!puedeModerar || idSel === undefined || estadoSel === "pendiente") return;
+    let vigente = true;
+    cargarRevision(idSel).then((datos) => {
+      if (vigente) setRevision({ id: idSel, datos });
+    });
+    return () => {
+      vigente = false;
+    };
+  }, [puedeModerar, idSel, estadoSel]);
+  const revisionCargada = revision?.id === idSel;
+
   const otros = reporte
     ? ordenarPorFecha(
-        todos.filter((r) => r.contacto === reporte.contacto && r.id !== reporte.id),
+        todos.filter((r) => r.id !== reporte.id && mismoContacto(r, reporte)),
         "nuevos"
       )
     : [];
@@ -334,7 +371,7 @@ function DetalleReporte({
                 <span className="text-xs text-muted-foreground">Reporte #{reporte.id}</span>
               </div>
               <SheetTitle className="flex items-center gap-2 text-lg break-all">
-                <ContactoIcono tipo={reporte.tipoContacto} className="size-5" />
+                <ContactoIcono tipo={reporte.tipoContacto} className="size-5 shrink-0" />
                 {reporte.contacto}
               </SheetTitle>
               <SheetDescription>
@@ -345,7 +382,7 @@ function DetalleReporte({
             <div className="flex flex-1 flex-col gap-6 overflow-y-auto p-4">
               {otros.length > 0 && (
                 <div className="rounded-lg bg-aguas-ambar-50 p-3 ring-1 ring-aguas-ambar/40 ring-inset">
-                  <p className="text-sm font-semibold text-[#92400e]">
+                  <p className="text-sm font-semibold text-aguas-ambar-texto">
                     {otros.length === 1
                       ? "Hay 1 reporte más de este contacto"
                       : `Hay ${otros.length} reportes más de este contacto`}
@@ -356,9 +393,9 @@ function DetalleReporte({
                         <button
                           type="button"
                           onClick={() => onSeleccionar(o.id)}
-                          className="flex w-full items-center justify-between gap-2 rounded-md px-2 py-1 text-left text-sm hover:bg-white/70"
+                          className="flex w-full items-center justify-between gap-2 rounded-md px-2 py-1 text-left text-sm hover:bg-background/60"
                         >
-                          <span className="text-[#78350f]">
+                          <span className="text-aguas-ambar-texto">
                             #{o.id} · {o.nombreUsuario}
                           </span>
                           <EstadoBadge estado={o.estado} />
@@ -370,10 +407,33 @@ function DetalleReporte({
               )}
 
               <section>
-                <h3 className="mb-1.5 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-                  Descripción
-                </h3>
-                <p className="text-sm leading-relaxed">
+                <Titulo>Datos del estafador</Titulo>
+                <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
+                  <dt className="text-muted-foreground">Teléfono</dt>
+                  <dd className="font-medium">{reporte.telefono ?? <SinDato />}</dd>
+                  <dt className="text-muted-foreground">Enlace</dt>
+                  <dd className="break-all">
+                    {reporte.enlace ? (
+                      // A propósito NO es un link: puede ser una página de phishing
+                      <span className="font-mono text-[13px]">{reporte.enlace}</span>
+                    ) : (
+                      <SinDato />
+                    )}
+                  </dd>
+                  <dt className="text-muted-foreground">Empresa</dt>
+                  <dd>{reporte.empresa ?? <SinDato texto="No indicó" />}</dd>
+                </dl>
+                {reporte.enlace && (
+                  <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <TriangleAlertIcon className="size-3.5 text-aguas-ambar" aria-hidden="true" />
+                    El enlace no se puede abrir desde aquí para evitar entrar a sitios falsos.
+                  </p>
+                )}
+              </section>
+
+              <section>
+                <Titulo>Descripción</Titulo>
+                <p className="text-sm leading-relaxed whitespace-pre-line">
                   {reporte.descripcion ?? (
                     <span className="text-muted-foreground italic">El usuario no agregó descripción.</span>
                   )}
@@ -381,44 +441,31 @@ function DetalleReporte({
               </section>
 
               <section>
-                <h3 className="mb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-                  Evidencias ({reporte.evidencias.length})
-                </h3>
-                {/* V1: placeholders. En V3 se muestran las imágenes reales y el PDF embebido */}
-                <div className="grid grid-cols-3 gap-2">
-                  {reporte.evidencias.map((e) => (
-                    <div
-                      key={e.id}
-                      className="flex aspect-[3/4] flex-col items-center justify-center gap-2 rounded-lg bg-muted p-2 text-center ring-1 ring-border"
-                    >
-                      {e.tipo === "pdf" ? (
-                        <FileTextIcon className="size-6 text-aguas-rojo" aria-hidden="true" />
-                      ) : (
-                        <ImageIcon className="size-6 text-muted-foreground" aria-hidden="true" />
-                      )}
-                      <span className="line-clamp-2 text-[11px] break-all text-muted-foreground">
-                        {e.nombreArchivo}
-                      </span>
-                      {e.principal && (
-                        <span className="rounded-full bg-aguas-azul px-1.5 text-[10px] font-medium text-white">
-                          Principal
-                        </span>
-                      )}
-                    </div>
-                  ))}
-                </div>
+                <Titulo>Evidencia</Titulo>
+                <VistaEvidencia reporte={reporte} />
               </section>
 
-              {reporte.revision && (
+              {puedeModerar && reporte.estado !== "pendiente" && (
                 <section className="rounded-lg bg-muted p-3 text-sm">
-                  <p>
-                    <span className="font-medium">
-                      {reporte.estado === "verificado" ? "Aprobado" : "Rechazado"}
-                    </span>{" "}
-                    por {reporte.revision.moderador} · {fechaHora(reporte.revision.fecha)}
-                  </p>
-                  {reporte.revision.motivo && (
-                    <p className="mt-1 text-muted-foreground">Motivo: {reporte.revision.motivo}</p>
+                  {!revisionCargada ? (
+                    <Skeleton className="h-4 w-3/4 bg-foreground/10" />
+                  ) : revision?.datos ? (
+                    <>
+                      <p>
+                        <span className="font-medium">
+                          {reporte.estado === "verificado" ? "Aprobado" : "Rechazado"}
+                        </span>{" "}
+                        por {revision.datos.moderador} · {fechaHora(revision.datos.fecha)}
+                      </p>
+                      {revision.datos.motivo && (
+                        <p className="mt-1 text-muted-foreground">Motivo: {revision.datos.motivo}</p>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-muted-foreground">
+                      {reporte.estado === "verificado" ? "Aprobado" : "Rechazado"}. No se encontró el
+                      registro de quién lo revisó.
+                    </p>
                   )}
                 </section>
               )}
@@ -453,7 +500,7 @@ function DetalleReporte({
                         setMotivo(e.target.value);
                         setErrorMotivo(false);
                       }}
-                      placeholder="Las evidencias no muestran el número reportado."
+                      placeholder="La evidencia no muestra el número reportado."
                       aria-invalid={errorMotivo}
                       className="w-full resize-none rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/40 aria-invalid:border-destructive"
                     />
@@ -464,18 +511,33 @@ function DetalleReporte({
                       <Button type="button" variant="ghost" onClick={() => setRechazando(false)}>
                         Cancelar
                       </Button>
-                      <Button type="submit" className="bg-aguas-rojo text-white hover:bg-aguas-rojo/90">
+                      <Button
+                        type="submit"
+                        disabled={moderando}
+                        className="bg-aguas-rojo-fuerte text-white hover:bg-aguas-rojo-fuerte/90"
+                      >
+                        {moderando && <Loader2Icon className="animate-spin" aria-hidden="true" />}
                         Confirmar rechazo
                       </Button>
                     </div>
                   </form>
                 ) : (
                   <div className="grid grid-cols-2 gap-2">
-                    <Button variant="outline" size="lg" onClick={() => setRechazando(true)}>
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      disabled={moderando}
+                      onClick={() => setRechazando(true)}
+                    >
                       <XIcon /> Rechazar
                     </Button>
-                    <Button size="lg" onClick={() => onModerar(reporte.id, "verificado", null)}>
-                      <CheckIcon /> Aprobar
+                    <Button
+                      size="lg"
+                      disabled={moderando}
+                      onClick={() => onModerar(reporte.id, "verificado", null)}
+                    >
+                      {moderando ? <Loader2Icon className="animate-spin" aria-hidden="true" /> : <CheckIcon />}
+                      Aprobar
                     </Button>
                   </div>
                 )}
@@ -485,5 +547,54 @@ function DetalleReporte({
         )}
       </SheetContent>
     </Sheet>
+  );
+}
+
+function Titulo({ children }: { children: React.ReactNode }) {
+  return (
+    <h3 className="mb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+      {children}
+    </h3>
+  );
+}
+
+function SinDato({ texto = "—" }: { texto?: string }) {
+  return <span className="text-muted-foreground">{texto}</span>;
+}
+
+// La imagen se ve completa; el PDF se muestra embebido. Los dos se pueden abrir en otra pestaña.
+function VistaEvidencia({ reporte }: { reporte: Reporte }) {
+  const ev = reporte.evidencia;
+  if (!ev) {
+    return <p className="text-sm text-muted-foreground italic">Este reporte no tiene evidencia.</p>;
+  }
+  return (
+    <div className="flex flex-col gap-2">
+      {ev.tipo === "imagen" ? (
+        <a href={ev.url} target="_blank" rel="noopener noreferrer" className="block">
+          {/* eslint-disable-next-line @next/next/no-img-element -- viene de nuestra propia ruta /evidencia */}
+          <img
+            src={ev.url}
+            alt={`Evidencia del reporte #${reporte.id}`}
+            className="max-h-[28rem] w-full rounded-lg bg-muted object-contain ring-1 ring-border"
+          />
+        </a>
+      ) : (
+        <iframe
+          src={ev.url}
+          title={`Evidencia del reporte #${reporte.id} (PDF)`}
+          className="h-[28rem] w-full rounded-lg bg-muted ring-1 ring-border"
+        />
+      )}
+      <a
+        href={ev.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-1.5 self-start text-sm font-medium text-aguas-azul hover:underline"
+      >
+        {ev.tipo === "pdf" ? <FileTextIcon className="size-4" /> : <ExternalLinkIcon className="size-4" />}
+        Abrir en otra pestaña
+      </a>
+    </div>
   );
 }

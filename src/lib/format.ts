@@ -1,12 +1,9 @@
 // Helpers de formato. Siempre en hora de CDMX para que el servidor y el
 // navegador muestren exactamente lo mismo (si no, React marca error de hidratación).
 
-import { AHORA } from "./mock-data";
-
 const ZONA = "America/Mexico_City";
 
-// En V2 esto pasa a ser `new Date()`; por ahora usamos la fecha fija de los datos de prueba.
-export const ahora = () => AHORA;
+export const ahora = () => new Date();
 
 export function fechaCorta(iso: string) {
   return new Intl.DateTimeFormat("es-MX", {

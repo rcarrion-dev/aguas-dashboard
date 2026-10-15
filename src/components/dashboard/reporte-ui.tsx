@@ -1,14 +1,14 @@
 // Piezas chicas que se repiten en Resumen y Reportes.
 
-import { GlobeIcon, MailIcon, PhoneIcon } from "lucide-react";
+import { GlobeIcon, PhoneIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { antiguedad, hace } from "@/lib/format";
-import type { EstadoReporte, TipoContacto } from "@/lib/types";
+import type { EstadoReporte, Reporte, TipoContacto } from "@/lib/types";
 
 const estilosEstado: Record<EstadoReporte, { texto: string; clase: string }> = {
   pendiente: {
     texto: "Pendiente",
-    clase: "bg-aguas-ambar-50 text-[#92400e] ring-aguas-ambar/40",
+    clase: "bg-aguas-ambar-50 text-aguas-ambar-texto ring-aguas-ambar/40",
   },
   verificado: {
     texto: "Verificado",
@@ -35,7 +35,7 @@ export function EstadoBadge({ estado }: { estado: EstadoReporte }) {
   );
 }
 
-const iconos = { telefono: PhoneIcon, correo: MailIcon, url: GlobeIcon };
+const iconos = { telefono: PhoneIcon, url: GlobeIcon };
 
 export function ContactoIcono({
   tipo,
@@ -58,11 +58,14 @@ export function Antiguedad({
 }) {
   const nivel = pendiente ? antiguedad(fecha) : "normal";
   return (
+    // suppressHydrationWarning: el servidor y el navegador calculan "hace X"
+    // con milisegundos de diferencia; si justo cambia de hora no es un error.
     <span
+      suppressHydrationWarning
       className={cn(
         "text-sm whitespace-nowrap",
         nivel === "normal" && "text-muted-foreground",
-        nivel === "atencion" && "font-medium text-[#a16207]",
+        nivel === "atencion" && "font-medium text-aguas-ambar-texto",
         nivel === "urgente" && "font-medium text-aguas-rojo"
       )}
       title={
@@ -127,4 +130,27 @@ export function ordenarPorFecha<T extends { fechaCreacion: string }>(
     const diff = new Date(b.fechaCreacion).getTime() - new Date(a.fechaCreacion).getTime();
     return orden === "nuevos" ? diff : -diff;
   });
+}
+
+// Para comparar números sin importar espacios, guiones o el +52
+const soloDigitos = (t: string) => t.replace(/\D/g, "").slice(-10);
+const enlaceNormal = (t: string) =>
+  t.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/+$/, "");
+
+// ¿Dos reportes son del mismo estafador? (mismo teléfono o mismo enlace)
+export function mismoContacto(a: Reporte, b: Reporte) {
+  if (a.telefono && b.telefono) {
+    const da = soloDigitos(a.telefono);
+    if (da.length >= 7 && da === soloDigitos(b.telefono)) return true;
+  }
+  if (a.enlace && b.enlace && enlaceNormal(a.enlace) === enlaceNormal(b.enlace)) return true;
+  return false;
+}
+
+// Texto donde busca el buscador de Reportes
+export function textoBuscable(r: Reporte) {
+  return [`#${r.id}`, r.telefono, r.telefono && soloDigitos(r.telefono), r.enlace, r.empresa, r.nombreUsuario]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
 }

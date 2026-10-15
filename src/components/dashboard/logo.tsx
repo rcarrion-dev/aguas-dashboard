@@ -39,7 +39,7 @@ export function LogoIcono({
             <path d={DOMO} fill="#fff" stroke="#fff" strokeWidth="5" strokeLinejoin="round" transform={ESCALA} />
           </mask>
         </defs>
-        <path d={JOTA} fill="none" stroke="var(--aguas-marino)" strokeWidth="8.5" strokeLinecap="round" />
+        <path d={JOTA} fill="none" stroke="var(--aguas-logo-tinta)" strokeWidth="8.5" strokeLinecap="round" />
         <g mask={`url(#${id}-silueta)`}>
           <g transform={ESCALA}>
             <rect x="0" y="0" width="200" height="150" fill="var(--aguas-marino)" />
@@ -88,7 +88,7 @@ export function Logo({ className }: { className?: string }) {
 // Para el login: logo a color con el nombre abajo.
 export function LogoCompleto({ className }: { className?: string }) {
   return (
-    <div className={cn("flex flex-col items-center gap-2 text-aguas-marino", className)}>
+    <div className={cn("flex flex-col items-center gap-2 text-aguas-logo-tinta", className)}>
       <LogoIcono variante="color" className="size-20" titulo="Aguas" />
       <span className="text-2xl font-bold tracking-[0.22em]" aria-hidden="true">
         AGUAS

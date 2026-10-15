@@ -20,6 +20,9 @@
   --color-aguas-verde-50: var(--aguas-verde-50);
   --color-aguas-rojo: var(--aguas-rojo);
   --color-aguas-rojo-50: var(--aguas-rojo-50);
+  --color-aguas-rojo-fuerte: var(--aguas-rojo-fuerte);
+  --color-aguas-ambar-texto: var(--aguas-ambar-texto);
+  --color-aguas-logo-tinta: var(--aguas-logo-tinta);
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-poppins);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -67,7 +70,11 @@
    vivo       → azul del panel central del logo: gráfica y detalles
    celeste    → panel claro del logo: ítem activo de la sidebar y fondos suaves
    ámbar / verde / rojo → estados pendiente / verificado / rechazado
-   Para cambiar un color de toda la app, se cambia solo aquí. */
+   ámbar-texto → texto sobre fondos ámbar suaves
+   rojo-fuerte → botón de "Confirmar rechazo" (con texto blanco)
+   logo-tinta  → la J y la palabra AGUAS del logo a color
+   Para cambiar un color de toda la app, se cambia solo aquí.
+   Modo oscuro: abajo, en .dark, van los mismos nombres con otros valores. */
 :root {
   --aguas-marino: #033777;
   --aguas-marino-900: #021d40;
@@ -81,6 +88,9 @@
   --aguas-verde-50: #dcfce7;
   --aguas-rojo: #c81e1e;
   --aguas-rojo-50: #fee2e2;
+  --aguas-rojo-fuerte: #c81e1e;
+  --aguas-ambar-texto: #92400e;
+  --aguas-logo-tinta: var(--aguas-marino);
 
   --background: #f4f7fb;
   --foreground: #0b1b33;
@@ -116,38 +126,54 @@
   --sidebar-ring: var(--aguas-celeste);
 }
 
+/* Modo oscuro: azul marino muy oscuro en vez de negro, para que siga
+   sintiéndose Aguas!. Los colores de estado se aclaran para leerse sobre
+   fondo oscuro y los fondos suaves pasan a ser transparencias.
+   Todos los textos cumplen contraste 4.5:1 (WCAG AA). */
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --aguas-azul: #5a9cff;
+  --aguas-vivo: #3d8eff;
+  --aguas-celeste-50: rgb(114 181 253 / 0.12);
+  --aguas-ambar-50: rgb(245 165 36 / 0.14);
+  --aguas-ambar-texto: #fbbf24;
+  --aguas-verde: #4ade80;
+  --aguas-verde-50: rgb(74 222 128 / 0.12);
+  --aguas-rojo: #f87171;
+  --aguas-rojo-50: rgb(248 113 113 / 0.12);
+  --aguas-rojo-fuerte: #dc2626;
+  --aguas-logo-tinta: #e6edf7;
+
+  --background: #0b1424;
+  --foreground: #e6edf7;
+  --card: #111c2e;
+  --card-foreground: #e6edf7;
+  --popover: #15223a;
+  --popover-foreground: #e6edf7;
+  --primary: #5a9cff;
+  --primary-foreground: #021d40;
+  --secondary: #1a2a44;
+  --secondary-foreground: #e6edf7;
+  --muted: #18263d;
+  --muted-foreground: #9aabc3;
+  --accent: #1a2a44;
+  --accent-foreground: #e6edf7;
+  --destructive: #f87171;
+  --border: #22324d;
+  --input: #2e4262;
+  --ring: #5a9cff;
+  --chart-1: var(--aguas-vivo);
+  --chart-2: var(--aguas-celeste);
+  --chart-3: #9aabc3;
+  --chart-4: var(--aguas-ambar);
+  --chart-5: #e6edf7;
+  --sidebar: #070f1d;
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: var(--aguas-celeste);
+  --sidebar-primary-foreground: var(--aguas-marino-900);
+  --sidebar-accent: rgb(255 255 255 / 0.08);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgb(255 255 255 / 0.1);
+  --sidebar-ring: var(--aguas-celeste);
 }
 
 @layer base {

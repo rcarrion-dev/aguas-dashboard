@@ -460,7 +460,9 @@ function DetalleReporte({
                         por {revision.datos.moderador} · {fechaHora(revision.datos.fecha)}
                       </p>
                       {revision.datos.motivo && (
-                        <p className="mt-1 text-muted-foreground">Motivo: {revision.datos.motivo}</p>
+                        <p className="mt-1 text-muted-foreground">
+                          {reporte.estado === "rechazado" ? "Motivo" : "Comentario"}: {revision.datos.motivo}
+                        </p>
                       )}
                     </>
                   ) : (

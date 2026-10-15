@@ -27,19 +27,19 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Logo } from "./logo";
-import type { Rol } from "@/lib/types";
+import { cerrarSesion } from "@/app/actions/auth";
+import { inicioPara, rutaPermitida, type RolPanel } from "@/lib/permisos";
 
 interface Seccion {
   titulo: string;
   href: string;
   icono: LucideIcon;
-  soloAdmin?: boolean;
 }
 
 const secciones: Seccion[] = [
   { titulo: "Resumen", href: "/", icono: LayoutDashboardIcon },
   { titulo: "Reportes", href: "/reportes", icono: FlagIcon },
-  { titulo: "Usuarios", href: "/usuarios", icono: UsersIcon, soloAdmin: true },
+  { titulo: "Usuarios", href: "/usuarios", icono: UsersIcon },
   { titulo: "Bitácora", href: "/bitacora", icono: HistoryIcon },
 ];
 
@@ -47,19 +47,22 @@ export function AppSidebar({
   rol,
   pendientes,
 }: {
-  rol: Rol;
+  rol: RolPanel;
   pendientes: number;
 }) {
   const pathname = usePathname();
   const { state, toggleSidebar } = useSidebar();
   const colapsada = state === "collapsed";
 
-  const visibles = secciones.filter((s) => !s.soloAdmin || rol === "admin");
+  // Cada rol solo ve las secciones que puede abrir (mismas reglas que el proxy)
+  const visibles = secciones
+    .filter((s) => rutaPermitida(rol, s.href))
+    .map((s) => (rol === "SSC" && s.href === "/reportes" ? { ...s, titulo: "Seguimiento" } : s));
 
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="px-3 pt-4 pb-2 group-data-[collapsible=icon]:px-2">
-        <Link href="/" aria-label="Ir al resumen">
+        <Link href={inicioPara(rol)} aria-label="Ir al inicio">
           <Logo />
         </Link>
       </SidebarHeader>
@@ -78,7 +81,7 @@ export function AppSidebar({
                       isActive={activa}
                       tooltip={s.titulo}
                       render={<Link href={s.href} />}
-                      className="relative h-9 data-active:shadow-[inset_3px_0_0_var(--aguas-amarillo)]"
+                      className="relative h-9 data-active:shadow-[inset_3px_0_0_var(--aguas-celeste)]"
                     >
                       <s.icono />
                       <span>{s.titulo}</span>
@@ -86,12 +89,12 @@ export function AppSidebar({
                       {conBadge && colapsada && (
                         <span
                           aria-label={`${pendientes} pendientes`}
-                          className="absolute top-1 right-1 size-2 rounded-full bg-aguas-amarillo"
+                          className="absolute top-1 right-1 size-2 rounded-full bg-aguas-ambar"
                         />
                       )}
                     </SidebarMenuButton>
                     {conBadge && (
-                      <SidebarMenuBadge className="top-2! rounded-full bg-aguas-amarillo px-1.5 text-[#2a1a00]! peer-hover/menu-button:text-[#2a1a00]!">
+                      <SidebarMenuBadge className="top-2! rounded-full bg-aguas-ambar px-1.5 text-[#3b2600]! peer-hover/menu-button:text-[#3b2600]!">
                         {pendientes}
                       </SidebarMenuBadge>
                     )}
@@ -106,11 +109,13 @@ export function AppSidebar({
       <SidebarFooter className="pb-3">
         <SidebarMenu className="gap-1">
           <SidebarMenuItem>
-            {/* En V2 esto borra la cookie del JWT y manda a /login */}
-            <SidebarMenuButton tooltip="Salir" className="h-9">
-              <LogOutIcon />
-              <span>Salir</span>
-            </SidebarMenuButton>
+            {/* Borra las cookies de sesión y manda al login */}
+            <form action={cerrarSesion}>
+              <SidebarMenuButton type="submit" tooltip="Salir" className="h-9">
+                <LogOutIcon />
+                <span>Salir</span>
+              </SidebarMenuButton>
+            </form>
           </SidebarMenuItem>
           <SidebarMenuItem className="border-t border-sidebar-border pt-1">
             <SidebarMenuButton

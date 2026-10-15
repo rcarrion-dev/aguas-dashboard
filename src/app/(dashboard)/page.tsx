@@ -4,9 +4,11 @@ import { GraficaReportes } from "@/components/dashboard/grafica-reportes";
 import { PendientesLista } from "@/components/dashboard/pendientes-lista";
 import { kpis, reportes, serieReportesPorDia } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
+import { requerirSesion } from "@/lib/sesion";
 
-// Página: Resumen (home del panel)
-export default function ResumenPage() {
+// Página: Resumen (home del panel, solo administrador)
+export default async function ResumenPage() {
+  await requerirSesion("administrador");
   const pendientes = reportes.filter((r) => r.estado === "pendiente");
   const totalMes = serieReportesPorDia.reduce((s, p) => s + p.total, 0);
 
@@ -29,7 +31,7 @@ export default function ResumenPage() {
             key={t.titulo}
             className={cn(
               "gap-1 px-4",
-              t.destacada && "shadow-[inset_0_3px_0_var(--aguas-amarillo)]"
+              t.destacada && "shadow-[inset_0_3px_0_var(--aguas-ambar)]"
             )}
           >
             <div className="flex items-center justify-between text-muted-foreground">

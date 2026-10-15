@@ -4,7 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { SearchIcon } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Input } from "@/components/ui/input";
-import type { Usuario } from "@/lib/types";
+import { NOMBRE_ROL, type RolPanel } from "@/lib/permisos";
 
 const titulos: Record<string, string> = {
   "/": "Resumen",
@@ -13,19 +13,22 @@ const titulos: Record<string, string> = {
   "/bitacora": "Bitácora",
 };
 
-export function Topbar({ usuario }: { usuario: Usuario }) {
+export function Topbar({ usuario }: { usuario: { nombre: string; rol: RolPanel } }) {
   const pathname = usePathname();
   const router = useRouter();
   const titulo =
+    (usuario.rol === "SSC" && pathname.startsWith("/reportes") ? "Seguimiento de reportes" : null) ??
     titulos[pathname] ??
     Object.entries(titulos).find(([k]) => k !== "/" && pathname.startsWith(k))?.[1] ??
     "";
 
   const iniciales = usuario.nombre
     .split(" ")
+    .filter(Boolean)
     .map((p) => p[0])
     .slice(0, 2)
-    .join("");
+    .join("")
+    .toUpperCase();
 
   return (
     <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-3 border-b bg-background/90 px-4 backdrop-blur md:px-6">
@@ -56,9 +59,9 @@ export function Topbar({ usuario }: { usuario: Usuario }) {
       <div className="ml-auto flex items-center gap-2.5 sm:ml-2">
         <div className="hidden text-right leading-tight lg:block">
           <p className="text-sm font-medium">{usuario.nombre}</p>
-          <p className="text-xs text-muted-foreground capitalize">{usuario.rol}</p>
+          <p className="text-xs text-muted-foreground">{NOMBRE_ROL[usuario.rol]}</p>
         </div>
-        <div className="flex size-8 items-center justify-center rounded-full bg-aguas-azul text-xs font-semibold text-white">
+        <div className="flex size-8 items-center justify-center rounded-full bg-aguas-marino text-xs font-semibold text-white">
           {iniciales}
         </div>
       </div>

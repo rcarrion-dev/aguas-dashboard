@@ -8,10 +8,14 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-poppins);
+  --color-aguas-marino: var(--aguas-marino);
+  --color-aguas-marino-900: var(--aguas-marino-900);
   --color-aguas-azul: var(--aguas-azul);
-  --color-aguas-azul-900: var(--aguas-azul-900);
-  --color-aguas-amarillo: var(--aguas-amarillo);
-  --color-aguas-amarillo-50: var(--aguas-amarillo-50);
+  --color-aguas-vivo: var(--aguas-vivo);
+  --color-aguas-celeste: var(--aguas-celeste);
+  --color-aguas-celeste-50: var(--aguas-celeste-50);
+  --color-aguas-ambar: var(--aguas-ambar);
+  --color-aguas-ambar-50: var(--aguas-ambar-50);
   --color-aguas-verde: var(--aguas-verde);
   --color-aguas-verde-50: var(--aguas-verde-50);
   --color-aguas-rojo: var(--aguas-rojo);
@@ -56,53 +60,60 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-/* Paleta de Aguas!
-   azul      → color principal (botones, gráfica, enlaces)
-   azul-900  → fondo de la sidebar
-   amarillo  → acento y estado "pendiente"
+/* Paleta de Aguas! (sale del logo)
+   marino     → texto fuerte y el panel oscuro del paraguas
+   marino-900 → fondo de la sidebar
+   azul       → botones y enlaces (versión más oscura del azul del logo, para que el texto blanco se lea bien)
+   vivo       → azul del panel central del logo: gráfica y detalles
+   celeste    → panel claro del logo: ítem activo de la sidebar y fondos suaves
+   ámbar / verde / rojo → estados pendiente / verificado / rechazado
    Para cambiar un color de toda la app, se cambia solo aquí. */
 :root {
-  --aguas-azul: #2b1fe0;
-  --aguas-azul-900: #1e10b8;
-  --aguas-amarillo: #f5a800;
-  --aguas-amarillo-50: #fff6e0;
-  --aguas-verde: #1f8a5b;
-  --aguas-verde-50: #e6f4ec;
-  --aguas-rojo: #c73636;
-  --aguas-rojo-50: #fbeaea;
+  --aguas-marino: #033777;
+  --aguas-marino-900: #021d40;
+  --aguas-azul: #1466d6;
+  --aguas-vivo: #1d81ff;
+  --aguas-celeste: #72b5fd;
+  --aguas-celeste-50: #eaf3ff;
+  --aguas-ambar: #f5a524;
+  --aguas-ambar-50: #fef3c7;
+  --aguas-verde: #15803d;
+  --aguas-verde-50: #dcfce7;
+  --aguas-rojo: #c81e1e;
+  --aguas-rojo-50: #fee2e2;
 
-  --background: #f5f5fa;
-  --foreground: #16142b;
+  --background: #f4f7fb;
+  --foreground: #0b1b33;
   --card: #ffffff;
-  --card-foreground: #16142b;
+  --card-foreground: #0b1b33;
   --popover: #ffffff;
-  --popover-foreground: #16142b;
+  --popover-foreground: #0b1b33;
   --primary: var(--aguas-azul);
   --primary-foreground: #ffffff;
-  --secondary: #ecebf7;
-  --secondary-foreground: #1e10b8;
-  --muted: #efeff5;
-  --muted-foreground: #66647a;
-  --accent: #ecebf7;
-  --accent-foreground: #1e10b8;
+  --secondary: #e8f0fb;
+  --secondary-foreground: var(--aguas-marino);
+  --muted: #eef2f8;
+  --muted-foreground: #5b6b82;
+  --accent: #e8f0fb;
+  --accent-foreground: var(--aguas-marino);
   --destructive: var(--aguas-rojo);
-  --border: #e3e2ee;
-  --input: #dddcea;
+  --border: #e2e8f0;
+  --input: #d5dde9;
   --ring: var(--aguas-azul);
-  --chart-1: var(--aguas-azul);
-  --chart-2: var(--aguas-amarillo);
-  --chart-3: #7a72ee;
-  --chart-4: #b3adf5;
-  --chart-5: #16142b;
+  --chart-1: var(--aguas-vivo);
+  --chart-2: var(--aguas-marino);
+  --chart-3: var(--aguas-celeste);
+  --chart-4: var(--aguas-ambar);
+  --chart-5: #0b1b33;
   --radius: 0.625rem;
-  --sidebar: var(--aguas-azul-900);
+  --sidebar: var(--aguas-marino-900);
   --sidebar-foreground: #ffffff;
-  --sidebar-primary: var(--aguas-amarillo);
-  --sidebar-primary-foreground: #2a1a00;
-  --sidebar-accent: rgb(255 255 255 / 0.14);
+  --sidebar-primary: var(--aguas-celeste);
+  --sidebar-primary-foreground: var(--aguas-marino-900);
+  --sidebar-accent: rgb(255 255 255 / 0.1);
   --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: rgb(255 255 255 / 0.16);
-  --sidebar-ring: var(--aguas-amarillo);
+  --sidebar-border: rgb(255 255 255 / 0.12);
+  --sidebar-ring: var(--aguas-celeste);
 }
 
 .dark {

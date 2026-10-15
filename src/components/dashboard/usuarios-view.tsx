@@ -20,8 +20,8 @@ import type { Rol, Usuario } from "@/lib/types";
 
 const roles: { valor: Rol; texto: string }[] = [
   { valor: "usuario", texto: "Usuario" },
-  { valor: "moderador", texto: "Moderador" },
-  { valor: "admin", texto: "Admin" },
+  { valor: "SSC", texto: "SSC" },
+  { valor: "administrador", texto: "Administrador" },
 ];
 
 // Solo la ve el rol admin (la sidebar ya la esconde; en V2 también se protege la ruta).

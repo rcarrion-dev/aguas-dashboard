@@ -9,6 +9,7 @@ import {
   ChevronRightIcon,
   ExternalLinkIcon,
   FileTextIcon,
+  ImageOffIcon,
   Loader2Icon,
   SearchIcon,
   TriangleAlertIcon,
@@ -337,12 +338,13 @@ function DetalleReporte({
     setErrorMotivo(false);
   }
 
-  // Quién lo revisó (solo admin; SSC no tiene acceso a la bitácora)
+  // Quién lo revisó (solo admin; SSC no tiene acceso a la bitácora).
+  // Si se acaba de moderar, esperamos a que el backend termine de guardarlo.
   const idSel = reporte?.id;
   const estadoSel = reporte?.estado;
   const [revision, setRevision] = useState<{ id: number; datos: Revision | null } | null>(null);
   useEffect(() => {
-    if (!puedeModerar || idSel === undefined || estadoSel === "pendiente") return;
+    if (!puedeModerar || moderando || idSel === undefined || estadoSel === "pendiente") return;
     let vigente = true;
     cargarRevision(idSel).then((datos) => {
       if (vigente) setRevision({ id: idSel, datos });
@@ -350,8 +352,8 @@ function DetalleReporte({
     return () => {
       vigente = false;
     };
-  }, [puedeModerar, idSel, estadoSel]);
-  const revisionCargada = revision?.id === idSel;
+  }, [puedeModerar, moderando, idSel, estadoSel]);
+  const revisionCargada = revision?.id === idSel && !moderando;
 
   const otros = reporte
     ? ordenarPorFecha(
@@ -442,7 +444,7 @@ function DetalleReporte({
 
               <section>
                 <Titulo>Evidencia</Titulo>
-                <VistaEvidencia reporte={reporte} />
+                <VistaEvidencia key={reporte.id} reporte={reporte} />
               </section>
 
               {puedeModerar && reporte.estado !== "pendiente" && (
@@ -564,9 +566,21 @@ function SinDato({ texto = "—" }: { texto?: string }) {
 
 // La imagen se ve completa; el PDF se muestra embebido. Los dos se pueden abrir en otra pestaña.
 function VistaEvidencia({ reporte }: { reporte: Reporte }) {
+  const [noCargo, setNoCargo] = useState(false);
   const ev = reporte.evidencia;
   if (!ev) {
     return <p className="text-sm text-muted-foreground italic">Este reporte no tiene evidencia.</p>;
+  }
+  if (noCargo) {
+    return (
+      <div className="flex items-start gap-2 rounded-lg bg-muted p-3 text-sm text-muted-foreground">
+        <ImageOffIcon className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+        <p>
+          No se encontró el archivo <span className="font-mono text-xs break-all">{ev.nombreArchivo}</span>{" "}
+          en el servidor.
+        </p>
+      </div>
+    );
   }
   return (
     <div className="flex flex-col gap-2">
@@ -576,6 +590,7 @@ function VistaEvidencia({ reporte }: { reporte: Reporte }) {
           <img
             src={ev.url}
             alt={`Evidencia del reporte #${reporte.id}`}
+            onError={() => setNoCargo(true)}
             className="max-h-[28rem] w-full rounded-lg bg-muted object-contain ring-1 ring-border"
           />
         </a>

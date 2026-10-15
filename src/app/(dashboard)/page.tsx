@@ -2,7 +2,14 @@ import { CheckCircle2Icon, InboxIcon, SendIcon, XCircleIcon } from "lucide-react
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { GraficaReportes } from "@/components/dashboard/grafica-reportes";
 import { PendientesLista } from "@/components/dashboard/pendientes-lista";
-import { haceMenosDe, obtenerBitacora, obtenerReportes, seriePorDia } from "@/lib/reportes";
+import {
+  esAprobacion,
+  esRechazo,
+  haceMenosDe,
+  obtenerBitacora,
+  obtenerReportes,
+  seriePorDia,
+} from "@/lib/reportes";
 import { cn } from "@/lib/utils";
 import { requerirSesion } from "@/lib/sesion";
 
@@ -21,8 +28,8 @@ export default async function ResumenPage() {
   // Aprobados/rechazados salen de la bitácora: cuenta cuándo se revisaron,
   // no cuándo se enviaron.
   const revisadas7d = bitacora.filter((b) => haceMenosDe(b.fechaHora, 7));
-  const aprobados7d = revisadas7d.filter((b) => b.accion === "reporte_verificado").length;
-  const rechazados7d = revisadas7d.filter((b) => b.accion === "reporte_rechazado").length;
+  const aprobados7d = revisadas7d.filter((b) => esAprobacion(b.accion)).length;
+  const rechazados7d = revisadas7d.filter((b) => esRechazo(b.accion)).length;
   const recibidos7d = reportes.filter((r) => haceMenosDe(r.fechaCreacion, 7)).length;
 
   const tarjetas = [

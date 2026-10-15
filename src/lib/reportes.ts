@@ -76,12 +76,16 @@ export const obtenerReportes = cache(async (rol: RolPanel): Promise<Reporte[]> =
 // Solo administrador
 export const obtenerBitacora = cache(() => pedirApi<BitacoraApi[]>("/bitacora"));
 
+// Nombres de acción en la bitácora. El backend escribe "reporte_verificado";
+// "reporte_aprobado" es como venían los datos de ejemplo del script SQL.
+export const esAprobacion = (accion: string) =>
+  accion === "reporte_verificado" || accion === "reporte_aprobado";
+export const esRechazo = (accion: string) => accion === "reporte_rechazado";
+
 // Quién aprobó o rechazó un reporte. Solo administrador.
 export async function obtenerRevision(idReporte: number): Promise<Revision | null> {
   const entradas = await pedirApi<BitacoraApi[]>(`/bitacora/reporte/${idReporte}`);
-  const e = entradas.find(
-    (x) => x.accion === "reporte_verificado" || x.accion === "reporte_rechazado"
-  );
+  const e = entradas.find((x) => esAprobacion(x.accion) || esRechazo(x.accion));
   if (!e) return null;
   return {
     moderador: nombreCompleto(e.usuario),

@@ -1,4 +1,4 @@
-import { CheckCircle2Icon, InboxIcon, SendIcon, XCircleIcon } from "lucide-react";
+import { CheckCircle2Icon, ClockIcon, InboxIcon, XCircleIcon } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { GraficaReportes } from "@/components/dashboard/grafica-reportes";
 import { PendientesLista } from "@/components/dashboard/pendientes-lista";
@@ -6,6 +6,7 @@ import {
   esAprobacion,
   esRechazo,
   haceMenosDe,
+  horasPromedioRevision,
   obtenerBitacora,
   obtenerReportes,
   seriePorDia,
@@ -30,13 +31,18 @@ export default async function ResumenPage() {
   const revisadas7d = bitacora.filter((b) => haceMenosDe(b.fechaHora, 7));
   const aprobados7d = revisadas7d.filter((b) => esAprobacion(b.accion)).length;
   const rechazados7d = revisadas7d.filter((b) => esRechazo(b.accion)).length;
-  const recibidos7d = reportes.filter((r) => haceMenosDe(r.fechaCreacion, 7)).length;
+  const horasRevision = horasPromedioRevision(reportes, bitacora, 7);
 
   const tarjetas = [
     { titulo: "Pendientes", valor: pendientes.length, icono: InboxIcon, destacada: true },
-    { titulo: "Recibidos · 7 días", valor: recibidos7d, icono: SendIcon },
     { titulo: "Aprobados · 7 días", valor: aprobados7d, icono: CheckCircle2Icon },
     { titulo: "Rechazados · 7 días", valor: rechazados7d, icono: XCircleIcon },
+    {
+      // Desde que llega el reporte hasta que se aprueba o rechaza
+      titulo: "Tiempo prom. de revisión",
+      valor: horasRevision === null ? "—" : formatoHoras(horasRevision),
+      icono: ClockIcon,
+    },
   ];
 
   return (
@@ -77,4 +83,10 @@ export default async function ResumenPage() {
       </div>
     </div>
   );
+}
+
+function formatoHoras(h: number) {
+  if (h < 1) return `${Math.max(1, Math.round(h * 60))} min`;
+  if (h < 48) return `${h.toFixed(1)} h`;
+  return `${(h / 24).toFixed(1)} días`;
 }

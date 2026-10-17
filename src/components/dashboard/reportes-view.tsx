@@ -85,9 +85,9 @@ export function ReportesView({
   );
   const [moderando, iniciarModeracion] = useTransition();
 
-  // Si vienes de la búsqueda global, buscamos en todos los estados
+  // Si vienes de la búsqueda global o de un link (bitácora), mostramos todos los estados
   const [pestana, setPestana] = useState<Pestana>(
-    !puedeModerar ? "verificado" : qInicial ? "todos" : "pendiente"
+    !puedeModerar ? "verificado" : qInicial || idInicial ? "todos" : "pendiente"
   );
   const [busqueda, setBusqueda] = useState(qInicial);
   const [orden, setOrden] = useState<Orden>("nuevos");

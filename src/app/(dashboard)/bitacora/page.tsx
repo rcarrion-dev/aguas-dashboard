@@ -1,9 +1,10 @@
 import { BitacoraView } from "@/components/dashboard/bitacora-view";
-import { bitacora } from "@/lib/mock-data";
+import { obtenerEntradasBitacora } from "@/lib/reportes";
 import { requerirSesion } from "@/lib/sesion";
 
-// Página: Bitácora (solo lectura, solo administrador)
+// Página: Bitácora (solo lectura, solo administrador). GET /bitacora
 export default async function BitacoraPage() {
   await requerirSesion("administrador");
-  return <BitacoraView entradas={bitacora} />;
+  const entradas = await obtenerEntradasBitacora();
+  return <BitacoraView entradas={entradas} />;
 }

@@ -38,10 +38,17 @@ export function leerToken(token: string | undefined, margenSeg = 10): PayloadTok
   }
 }
 
+// Cookies "secure" = el navegador solo las manda por https. En producción sí,
+// salvo que COOKIES_SEGURAS=false (por ejemplo en la red del lab, que es
+// http://<ip>). Sin esto, el login "funciona" pero la sesión nunca se guarda.
+const cookiesSeguras = process.env.COOKIES_SEGURAS
+  ? process.env.COOKIES_SEGURAS === "true"
+  : process.env.NODE_ENV === "production";
+
 export function opcionesCookie(maxAgeSeg: number) {
   return {
     httpOnly: true, // JavaScript del navegador no puede leerla
-    secure: process.env.NODE_ENV === "production", // en local no hay https
+    secure: cookiesSeguras,
     sameSite: "lax" as const,
     path: "/",
     maxAge: Math.max(0, Math.floor(maxAgeSeg)),

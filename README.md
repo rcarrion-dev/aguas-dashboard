@@ -35,3 +35,16 @@ Todo:
 - Resumen: pendientes, números de los últimos 7 días, tiempo promedio de revisión y gráfica de 30 días
 - Usuarios: lista de cuentas, suspender y reactivar (el rol no se cambia desde el panel)
 - Bitácora: quién aprobó o rechazó cada reporte
+
+## En la red del lab (modo producción)
+
+En la compu que corre el backend y el dashboard:
+
+```
+npm install
+npm run build
+npm start
+```
+
+Queda en `http://<ip-de-esa-compu>:3001`. En `.env.local` pon `COOKIES_SEGURAS=false`,
+porque la red es http; si no, el login no guarda la sesión.

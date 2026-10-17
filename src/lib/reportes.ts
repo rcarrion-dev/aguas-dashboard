@@ -4,7 +4,14 @@
 import { cache } from "react";
 import { pedirApi } from "./api";
 import type { RolPanel } from "./permisos";
-import type { EstadoReporte, Evidencia, PuntoSerie, Reporte, Revision } from "./types";
+import type {
+  EntradaBitacora,
+  EstadoReporte,
+  Evidencia,
+  PuntoSerie,
+  Reporte,
+  Revision,
+} from "./types";
 
 // Lo que regresa el backend (ReporteResponseDto)
 interface ReporteApi {
@@ -22,6 +29,7 @@ interface ReporteApi {
 // BitacoraResponseDto
 export interface BitacoraApi {
   idBitacora: number;
+  idReporte?: number | null; // lo agrega el backend desde el PR de suspender cuentas
   fechaHora: string;
   accion: string;
   descripcion: string | null;
@@ -82,6 +90,26 @@ export const esAprobacion = (accion: string) =>
   accion === "reporte_verificado" || accion === "reporte_aprobado";
 export const esRechazo = (accion: string) => accion === "reporte_rechazado";
 
+// Bitácora lista para mostrar: solo moderaciones, con el contacto de su reporte
+export async function obtenerEntradasBitacora(): Promise<EntradaBitacora[]> {
+  const [bitacora, reportes] = await Promise.all([
+    obtenerBitacora(),
+    obtenerReportes("administrador"),
+  ]);
+  const porId = new Map(reportes.map((r) => [r.id, r]));
+  return bitacora
+    .filter((b) => esAprobacion(b.accion) || esRechazo(b.accion))
+    .map((b) => ({
+      id: b.idBitacora,
+      fecha: b.fechaHora,
+      actor: nombreCompleto(b.usuario),
+      accion: esAprobacion(b.accion) ? "aprobado" : "rechazado",
+      idReporte: b.idReporte ?? null,
+      contacto: b.idReporte ? (porId.get(b.idReporte)?.contacto ?? null) : null,
+      comentario: texto(b.descripcion),
+    }));
+}
+
 // Quién aprobó o rechazó un reporte. Solo administrador.
 export async function obtenerRevision(idReporte: number): Promise<Revision | null> {
   const entradas = await pedirApi<BitacoraApi[]>(`/bitacora/reporte/${idReporte}`);
@@ -120,4 +148,25 @@ export function seriePorDia(reportes: Reporte[], dias = 30): PuntoSerie[] {
 
 export function haceMenosDe(iso: string, dias: number) {
   return Date.now() - new Date(iso).getTime() < dias * DIA_MS;
+}
+
+// Horas promedio entre que llega un reporte y se aprueba/rechaza, contando
+// las revisiones de los últimos `dias` días. null si no hay revisiones
+// (o si el backend todavía no manda idReporte en la bitácora).
+export function horasPromedioRevision(
+  reportes: Reporte[],
+  bitacora: BitacoraApi[],
+  dias = 7
+): number | null {
+  const porId = new Map(reportes.map((r) => [r.id, r]));
+  const horas: number[] = [];
+  for (const b of bitacora) {
+    if (!(esAprobacion(b.accion) || esRechazo(b.accion)) || !haceMenosDe(b.fechaHora, dias)) continue;
+    const r = b.idReporte ? porId.get(b.idReporte) : undefined;
+    if (!r) continue;
+    const h = (new Date(b.fechaHora).getTime() - new Date(r.fechaCreacion).getTime()) / 3_600_000;
+    if (h >= 0) horas.push(h);
+  }
+  if (horas.length === 0) return null;
+  return horas.reduce((a, b) => a + b, 0) / horas.length;
 }

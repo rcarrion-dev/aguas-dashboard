@@ -43,28 +43,26 @@ export interface Revision {
 
 export interface Usuario {
   id: number;
-  nombre: string;
+  nombre: string; // nombre y apellido
   correo: string;
   rol: Rol;
-  activo: boolean;
+  activo: boolean; // false = suspendido
   fechaRegistro: string; // ISO
   totalReportes: number;
+  reportesRechazados: number;
 }
 
-export type AccionBitacora =
-  | "reporte_aprobado"
-  | "reporte_rechazado"
-  | "usuario_suspendido"
-  | "usuario_reactivado"
-  | "rol_cambiado"
-  | "inicio_sesion";
+// La bitácora del backend registra las moderaciones de reportes
+export type AccionBitacora = "aprobado" | "rechazado";
 
 export interface EntradaBitacora {
   id: number;
   fecha: string; // ISO
   actor: string;
   accion: AccionBitacora;
-  detalle: string;
+  idReporte: number | null;
+  contacto: string | null; // teléfono o enlace del reporte, si lo encontramos
+  comentario: string | null;
 }
 
 export interface PuntoSerie {

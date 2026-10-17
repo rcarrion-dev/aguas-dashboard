@@ -56,6 +56,9 @@ export async function iniciarSesion(
     if (respuesta.status === 401) {
       return { error: "Correo o contraseña incorrectos.", correo };
     }
+    if (respuesta.status === 403) {
+      return { error: "Tu cuenta está suspendida.", correo };
+    }
     if (respuesta.status === 400) {
       return { error: "Escribe un correo válido.", correo };
     }

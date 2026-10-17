@@ -1,15 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import {
-  CheckCircle2Icon,
-  LogInIcon,
-  ShieldIcon,
-  UserCheckIcon,
-  UserXIcon,
-  XCircleIcon,
-  type LucideIcon,
-} from "lucide-react";
+import Link from "next/link";
+import { CheckCircle2Icon, XCircleIcon, type LucideIcon } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import {
   Table,
@@ -24,16 +17,11 @@ import { cn } from "@/lib/utils";
 import type { AccionBitacora, EntradaBitacora } from "@/lib/types";
 
 const acciones: Record<AccionBitacora, { texto: string; icono: LucideIcon; clase: string }> = {
-  reporte_aprobado: { texto: "Aprobó reporte", icono: CheckCircle2Icon, clase: "text-aguas-verde" },
-  reporte_rechazado: { texto: "Rechazó reporte", icono: XCircleIcon, clase: "text-aguas-rojo" },
-  usuario_suspendido: { texto: "Suspendió usuario", icono: UserXIcon, clase: "text-aguas-rojo" },
-  usuario_reactivado: { texto: "Reactivó usuario", icono: UserCheckIcon, clase: "text-aguas-verde" },
-  rol_cambiado: { texto: "Cambió rol", icono: ShieldIcon, clase: "text-aguas-azul" },
-  inicio_sesion: { texto: "Inició sesión", icono: LogInIcon, clase: "text-muted-foreground" },
+  aprobado: { texto: "Aprobó", icono: CheckCircle2Icon, clase: "text-aguas-verde" },
+  rechazado: { texto: "Rechazó", icono: XCircleIcon, clase: "text-aguas-rojo" },
 };
 
-const selectClase =
-  "h-9 rounded-md border border-input bg-card px-2.5 text-sm text-foreground";
+const selectClase = "h-9 rounded-md border border-input bg-card px-2.5 text-sm text-foreground";
 
 // Solo lectura: nadie puede editar ni borrar la bitácora.
 export function BitacoraView({ entradas }: { entradas: EntradaBitacora[] }) {
@@ -48,8 +36,13 @@ export function BitacoraView({ entradas }: { entradas: EntradaBitacora[] }) {
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-4">
-      <div className="flex flex-wrap gap-2">
-        <select aria-label="Filtrar por persona" value={actor} onChange={(e) => setActor(e.target.value)} className={selectClase}>
+      <div className="flex flex-wrap items-center gap-2">
+        <select
+          aria-label="Filtrar por persona"
+          value={actor}
+          onChange={(e) => setActor(e.target.value)}
+          className={selectClase}
+        >
           <option value="todos">Todas las personas</option>
           {actores.map((a) => (
             <option key={a} value={a}>
@@ -63,13 +56,13 @@ export function BitacoraView({ entradas }: { entradas: EntradaBitacora[] }) {
           onChange={(e) => setAccion(e.target.value as AccionBitacora | "todas")}
           className={selectClase}
         >
-          <option value="todas">Todas las acciones</option>
-          {Object.entries(acciones).map(([valor, a]) => (
-            <option key={valor} value={valor}>
-              {a.texto}
-            </option>
-          ))}
+          <option value="todas">Aprobados y rechazados</option>
+          <option value="aprobado">Solo aprobados</option>
+          <option value="rechazado">Solo rechazados</option>
         </select>
+        <span className="text-sm text-muted-foreground">
+          {filtradas.length === 1 ? "1 movimiento" : `${filtradas.length} movimientos`}
+        </span>
       </div>
 
       <Card className="py-0">
@@ -79,14 +72,17 @@ export function BitacoraView({ entradas }: { entradas: EntradaBitacora[] }) {
               <TableHead className="pl-4">Fecha</TableHead>
               <TableHead>Quién</TableHead>
               <TableHead>Acción</TableHead>
-              <TableHead className="pr-4">Detalle</TableHead>
+              <TableHead>Reporte</TableHead>
+              <TableHead className="hidden pr-4 md:table-cell">Comentario</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filtradas.length === 0 && (
               <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={4} className="py-12 text-center text-muted-foreground">
-                  No hay movimientos con esos filtros.
+                <TableCell colSpan={5} className="py-12 text-center text-muted-foreground">
+                  {entradas.length === 0
+                    ? "Todavía no se ha moderado ningún reporte."
+                    : "No hay movimientos con esos filtros."}
                 </TableCell>
               </TableRow>
             )}
@@ -104,7 +100,22 @@ export function BitacoraView({ entradas }: { entradas: EntradaBitacora[] }) {
                       {a.texto}
                     </span>
                   </TableCell>
-                  <TableCell className="max-w-md truncate pr-4 text-muted-foreground">{e.detalle}</TableCell>
+                  <TableCell className="max-w-56">
+                    {e.idReporte ? (
+                      <Link
+                        href={`/reportes?id=${e.idReporte}`}
+                        className="block truncate font-medium text-aguas-azul hover:underline"
+                      >
+                        #{e.idReporte}
+                        {e.contacto && ` · ${e.contacto}`}
+                      </Link>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="hidden max-w-sm truncate pr-4 text-muted-foreground md:table-cell">
+                    {e.comentario ?? "—"}
+                  </TableCell>
                 </TableRow>
               );
             })}

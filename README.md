@@ -22,14 +22,16 @@ login y los mismos roles que la app.
 
 | Rol | Puede |
 | --- | --- |
-| administrador | Resumen, aprobar/rechazar reportes, usuarios y bitácora |
+| administrador | Resumen, aprobar/rechazar reportes, suspender cuentas y bitácora |
 | SSC | Solo "Seguimiento": reportes ya verificados, sin moderar |
 | usuario | No entra al panel (usa la app) |
 
 ## Qué ya usa datos reales
 
+Todo:
+
 - Login, sesión y permisos por rol
 - Reportes: lista, detalle, evidencia, aprobar y rechazar
-- Resumen: pendientes, números de los últimos 7 días y gráfica de 30 días
-
-Usuarios y Bitácora todavía usan datos de prueba (`src/lib/mock-data.ts`).
+- Resumen: pendientes, números de los últimos 7 días, tiempo promedio de revisión y gráfica de 30 días
+- Usuarios: lista de cuentas, suspender y reactivar (el rol no se cambia desde el panel)
+- Bitácora: quién aprobó o rechazó cada reporte

@@ -346,9 +346,15 @@ function DetalleReporte({
   useEffect(() => {
     if (!puedeModerar || moderando || idSel === undefined || estadoSel === "pendiente") return;
     let vigente = true;
-    cargarRevision(idSel).then((datos) => {
-      if (vigente) setRevision({ id: idSel, datos });
-    });
+    cargarRevision(idSel)
+      .then((datos) => {
+        if (vigente) setRevision({ id: idSel, datos });
+      })
+      .catch(() => {
+        // Si la petición falla, se muestra como "sin revisión" en lugar de
+        // quedarse cargando para siempre.
+        if (vigente) setRevision({ id: idSel, datos: null });
+      });
     return () => {
       vigente = false;
     };
